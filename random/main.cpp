@@ -1,5 +1,7 @@
 #include <iostream>
 
+static int seed = 123456789;
+
 // Finds e^x. x>0 or x<0 OK
 double myExp(const double& x, const int& n)// e^x - no error finding
 {
@@ -69,9 +71,8 @@ int pseudo_uniform(int size)
 {
 	int mult = 16807;
 	int mod = 2147483647;
-	static int x = 123456789; // seed
-	x = (x * mult + 1) % mod;
-	int random = (double)x / (double)mod * size/2 + size / 2;
+	seed = (seed * mult + 1) % mod;
+	int random = (double)seed / (double)mod * (double)size / 2 + (double)size / 2;
 	return random;
 }
 
@@ -79,9 +80,8 @@ double pseudo_uniform(double flag)
 {
 	int mult = 16807;
 	int mod = 2147483647;
-	static int x = 123456789; // seed
-	x = (x * mult + 1) % mod;
-	double random = (double)x / (double)mod * 0.5 + 0.5;
+	seed = (seed * mult + 1) % mod;
+	double random = (double)seed / (double)mod * 0.5 + 0.5;
 	return random;
 }
 
@@ -89,15 +89,28 @@ int pseudo_bernoulli(int size)
 {
 	double result;
 	double u = pseudo_uniform(0.1);
-	result = myNatLog(u / (1.0 - u), 100) / myNatLog(10,100);
-	return ((int)(result * size / 4 + size / 2) + size * 10) % size;
+	result = (int)((myNatLog(u / (1.0 - u), 100) / myNatLog(10, 100) + 0.2) * size / 4 + size / 2);
+	if (result >= size || result < 0)
+	{
+		result = size / 2;
+	}
+	return (int)result;
 }
 
-#define SIZE 10
+int pseudo_exp(int size)
+{
+	double result;
+	double u = pseudo_uniform(0.1);
+	result = -1 * (1 / 1) * myNatLog(1.0 - u, 100);
+	return (int)(result * size / 3 ) % size;
+}
+
+#define SIZE 15
 #define COUNT 10000
 
 int main()
 {
+	std::cout << "균등한 확률을 가지는 난수 생성 " << std::endl;
 	int test_uniform_arr[SIZE] = { 0 };
 	for (int i = 0; i < COUNT; i++)
 	{
@@ -105,12 +118,23 @@ int main()
 		test_uniform_arr[temp]++;
 		//std::cout << temp << " ";
 	}
-	std::cout << std::endl;
 	for (int i = 0; i < SIZE; i++)
 	{
 		std::cout << test_uniform_arr[i] << ' ';
 	}
-	std::cout << "  <= 균등한 확률을 가지는 난수 생성 " << std::endl;
+	std::cout << std::endl;
+	for (int i = 0; i < SIZE; i++)
+	{
+		std::cout << i << "\t: ";
+		for (int j = 0; j < test_uniform_arr[i] / (COUNT /SIZE / 10); j++)
+		{
+			std::cout << '#';
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+
+	std::cout << "로지스틱 분포를 따르는 난수 생성 " << std::endl;
 	int test_logistic_arr[SIZE] = { 0 };
 	for (int i = 0; i < COUNT; i++)
 	{
@@ -118,13 +142,45 @@ int main()
 		test_logistic_arr[temp]++;
 		//std::cout << temp << " ";
 	}
-	std::cout << std::endl;
 	for (int i = 0; i < SIZE; i++)
 	{
 		std::cout << test_logistic_arr[i] << ' ';
 	}
-	std::cout << "  <= 로지스틱 분포를 따르는 난수 생성 " << std::endl;
+	std::cout << std::endl;
+	for (int i = 0; i < SIZE; i++)
+	{
+		std::cout << i << "\t: ";
+		for (int j = 0; j < test_logistic_arr[i] / (COUNT / SIZE / 10); j++)
+		{
+			std::cout << '#';
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
 
+	std::cout << "지수 분포를 따르는 난수 생성 " << std::endl;
+	int test_exp_arr[SIZE] = { 0 };
+	for (int i = 0; i < COUNT; i++)
+	{
+		int temp = pseudo_exp(SIZE);
+		test_exp_arr[temp]++;
+		//std::cout << temp << " ";
+	}
+	for (int i = 0; i < SIZE; i++)
+	{
+		std::cout << test_exp_arr[i] << ' ';
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < SIZE; i++)
+	{
+		std::cout << i << "\t: ";
+		for (int j = 0; j < test_exp_arr[i] / (COUNT / SIZE / 10); j++)
+		{
+			std::cout << '#';
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
 
 	return 0;
 }
